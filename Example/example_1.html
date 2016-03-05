@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>AZStack Web SDK example</title>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+		<!-- optional -->
+		<script type="text/javascript" src="js/jquery-1.12.1.min.js"></script>
+
+		<!-- required libraries -->
+		<script type="text/javascript" src="js/socket.io.js"></script>
+		<script type="text/javascript" src="js/jsencrypt.js"></script>
+		<script type="text/javascript" src="js/azstack_sdk-1.0-build-20160305-2.js"></script>
+
+		<script type="text/javascript">
+			var currentMsgId = Math.floor(Date.now() / 1000);
+
+			$(document).ready(function () {
+				$msgDiv = $('#msg');
+
+
+				//init SDK
+				var azAppID = "26870527d2ac628002dda81be54217cf";
+				var publicKey = 'MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAq9s407QkMiZkXF0juCGjti6iWUDzqEmP+Urs3+g2zOf+rbIAZVZItS5a4BZlv3Dux3Xnmhrz240OZMBO1cNcpoEQNij1duZlpJY8BJiptlrj3C+K/PSp0ijllnckwvYYpApm3RxC8ITvpmY3IZTrRKloC/XoRe39p68ARtxXKKW5I/YYxFucY91b6AEOUNaqMFEdLzpO/Dgccaxoc+N1SMfZOKue7aH0ZQIksLN7OQGVoiuf9wR2iSz3+FA+mMzRIP+lDxI4JE42Vvn1sYmMCY1GkkWUSzdQsfgnAIvnbepM2E4/95yMdRPP/k2Qdq9ja/mwEMTfA0yPUZ7LiywoZwIDAQAB';
+				var azStackUserId = 'user2';
+				var fullname = 'Dau Ngoc Huy';
+				var userCredentials = '274f011805dad952bf234f1cac990f18';
+				//log level
+				azstack.logLevel = 'INFO';
+
+				//SDK delegate --------------------------------------------- -->
+				azstack.onAuthenticationCompleted = function (code, authenticatedUser) {
+					azstack.log('INFO', 'onAuthenticationCompleted code ' + code + ', authenticatedUser: ');
+					azstack.log('INFO', authenticatedUser);
+
+					$msgDiv.append('onAuthenticationCompleted code ' + code + ', authenticatedUser: ' + '<br />');
+					$msgDiv.append(JSON.stringify(authenticatedUser) + '<br />');
+				}
+				azstack.onMessageReceived = function (user, msg) {
+					azstack.log('INFO', 'onMessageReceived');
+					azstack.log('INFO', user);
+					azstack.log('INFO', msg);
+					
+					$msgDiv.append('onMessageReceived from: ' + '<br />');
+					$msgDiv.append(JSON.stringify(user) + '<br />');
+					$msgDiv.append('Msg: ' + '<br />');
+					$msgDiv.append(JSON.stringify(msg) + '<br />');
+				}
+				azstack.onMessagesDelivered = function (packet) {
+					azstack.log('INFO', 'onMessagesDelivered');
+					azstack.log('INFO', packet);
+				}
+				azstack.onMessagesSent = function (packet) {
+					azstack.log('INFO', 'onMessagesSent');
+					azstack.log('INFO', packet);
+				}
+				azstack.onMessageFromMe = function (packet) {//msg from me (from other device)
+					azstack.log('INFO', 'onMessageFromMe');
+					azstack.log('INFO', packet);
+				}
+				//SDK delegate --------------------------------------------- <--
+
+				//start authentication
+				azstack.connect(azAppID, publicKey, azStackUserId, userCredentials, fullname);//connect AZStack server
+			});
+		</script>
+	</head>
+	<body>
+		<button onclick="azstack.azSendMessage('Hello!', 'user2', currentMsgId++)">Send a msg to: user2</button>
+		<br /><br />
+
+		<div id="msg">
+
+		</div>
+	</body>
+</html>
