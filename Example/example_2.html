@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Test AZStack Web SDK</title>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+		<!-- optional -->
+		<script type="text/javascript" src="../SDK/jquery-1.12.1.min.js"></script>
+
+		<!-- required libraries -->
+		<script type="text/javascript" src="../SDK/socket.io.js"></script>
+		<script type="text/javascript" src="../SDK/jsencrypt.js"></script>
+		<script type="text/javascript" src="../SDK/azstack_sdk-1.0-build-20160305-2.js"></script>
+	</head>
+	<body>
+
+		<div>Login as: user1</div>
+
+		<script type="text/javascript">
+			var currentMsgId = Math.floor(Date.now() / 1000);
+
+			$(document).ready(function () {
+				//init SDK
+				var azAppID = "26870527d2ac628002dda81be54217cf";
+				var publicKey = 'MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAq9s407QkMiZkXF0juCGjti6iWUDzqEmP+Urs3+g2zOf+rbIAZVZItS5a4BZlv3Dux3Xnmhrz240OZMBO1cNcpoEQNij1duZlpJY8BJiptlrj3C+K/PSp0ijllnckwvYYpApm3RxC8ITvpmY3IZTrRKloC/XoRe39p68ARtxXKKW5I/YYxFucY91b6AEOUNaqMFEdLzpO/Dgccaxoc+N1SMfZOKue7aH0ZQIksLN7OQGVoiuf9wR2iSz3+FA+mMzRIP+lDxI4JE42Vvn1sYmMCY1GkkWUSzdQsfgnAIvnbepM2E4/95yMdRPP/k2Qdq9ja/mwEMTfA0yPUZ7LiywoZwIDAQAB';
+				var azStackUserId = 'user1';
+				var fullname = 'Dau Ngoc Huy';
+				var userCredentials = '274f011805dad952bf234f1cac990f18';
+				//log level
+				azstack.logLevel = 'INFO';
+
+				//az delegate --------------------------------------------- -->
+				azstack.onAuthenticationCompleted = function (code, authenticatedUser) {
+					azstack.log('INFO', 'onAuthenticationCompleted code: ' + code + ', authenticatedUser');
+					azstack.log('INFO', authenticatedUser);
+
+					//get list all conversations: call 1 lan duy nhat sau khi authen thanh cong; 
+					// ham azstack.onListModifiedConversationReceived 
+					// se duoc goi nhieu lan neu co nhieu msg (phan trang)
+					azstack.azGetListModifiedConversations(0);
+
+					//get list modified messages: call 1 lan duy nhat sau khi authen thanh cong; 
+					// ham azstack.onListModifiedMessagesReceived 
+					// se duoc goi nhieu lan neu co nhieu msg (phan trang)
+					azstack.azGetListModifiedMessages(0, 1, 36010);
+
+					//get list unread messages: call 1 lan duy nhat sau khi authen thanh cong; 
+					// ham azstack.onListUnreadMessagesReceived 
+					// se duoc goi nhieu lan neu co nhieu msg (phan trang)
+					azstack.azGetListUnreadMessages(1, 36010);
+				}
+
+				azstack.onListModifiedConversationReceived = function (packet) {
+					azstack.log('INFO', 'onListModifiedConversationReceived');
+					azstack.log('INFO', JSON.stringify(packet));
+				}
+				azstack.onListModifiedMessagesReceived = function (packet) {
+					azstack.log('INFO', 'onListModifiedMessagesReceived');
+					azstack.log('INFO', JSON.stringify(packet));
+				}
+				azstack.onListUnreadMessagesReceived = function (packet) {
+					azstack.log('INFO', 'onListUnreadMessagesReceived');
+					azstack.log('INFO', JSON.stringify(packet));
+				}
+
+				azstack.onMessageReceived = function (user, msg) {//nhan dc 1 tin nhan chat 1-1
+					azstack.log('INFO', 'azHaveMessage');
+					azstack.log('INFO', user);
+					azstack.log('INFO', msg);
+				}
+				azstack.onGroupMessageReceived = function (msg) {//nhan dc 1 tin nhan chat group
+					azstack.log('INFO', 'onGroupMessageReceived');
+					azstack.log('INFO', msg);
+				}
+				azstack.onMessagesDelivered = function (packet) {//nhan dc bao cao tin nhan da nhan
+					azstack.log('INFO', 'onMessagesDelivered');
+					azstack.log('INFO', packet);
+				}
+				azstack.onMessagesSent = function (packet) {//bao cao tin nhan da gui
+					azstack.log('INFO', 'onMessagesSent');
+					azstack.log('INFO', packet);
+				}
+
+				azstack.onMessageFromMe = function (packet) {//tin nhan tu` chinh minh` (dc gui tu 1 device khac)
+					azstack.log('INFO', 'onMessageFromMe');
+					azstack.log('INFO', JSON.stringify(packet));
+				}
+
+				//group notification -->
+				azstack.onMakeGroupNotification = function (packet) {
+					azstack.log('INFO', 'onMakeGroupNotification');
+					azstack.log('INFO', JSON.stringify(packet));
+				}
+				azstack.onInviteGroupNotification = function (packet) {
+					azstack.log('INFO', 'onInviteGroupNotification');
+					azstack.log('INFO', JSON.stringify(packet));
+				}
+				azstack.onLeaveGroupNotification = function (packet) {
+					azstack.log('INFO', 'onLeaveGroupNotification');
+					azstack.log('INFO', JSON.stringify(packet));
+				}
+				azstack.onRenameGroupNotification = function (packet) {
+					azstack.log('INFO', 'onRenameGroupNotification');
+					azstack.log('INFO', JSON.stringify(packet));
+				}
+				//group notification <--
+				//az delegate --------------------------------------------- <--
+
+				//start authentication
+				azstack.connect(azAppID, publicKey, azStackUserId, userCredentials, fullname);
+			});
+
+			function testMakeGroup() {
+				azstack.azMakeGroup([35665, 35949], 'Group name', currentMsgId++, function (data) {
+					console.log('make group done, data:');
+					console.log(data);
+				});
+			}
+
+			function testInviteToGroup() {
+				azstack.azInviteToGroup([35665, 35949], 140, currentMsgId++, function (data) {
+					console.log('invite to group done, data:');
+					console.log(data);
+				});
+			}
+
+			function testLeaveGroup() {
+				azstack.azLeaveGroup(35665, 140, currentMsgId++, function (data) {//leaveUser, group, msgId, callback
+					console.log('leave group done, data:');
+					console.log(data);
+				});
+			}
+
+			function testRenameGroup() {
+				azstack.azRenameGroup('Group name moi nhe', 140, currentMsgId++, function (data) {//name, group, msgId, callback
+					console.log('rename group done, data:');
+					console.log(data);
+				});
+			}
+
+			function testGetGroupInfo() {
+				azstack.azGetGroupInfo(140, function (data) {
+					console.log('testGetGroupInfo, data:');
+					console.log(data);
+				});
+			}
+		</script>
+
+
+
+		<br/ ><br/ ><br/ >
+			<button onclick="azstack.azSendMessage('xin chao nhe', 'user2', currentMsgId++)">Send a msg to: user2</button>
+		<br/ >
+			<button onclick="azstack.azSendMessageFileUrl('http://img.v3.news.zdn.vn/w660/Uploaded/SotnTJ/2015_12_15/HLV_Miura_zing.jpg', 'img.jpg', 1, 'ha', currentMsgId++)">Send a photo to: 0986776707</button>
+
+		<br/ ><br/ >group:<br/ ><br/ >
+
+			<button onclick="azstack.azSendMessageGroup('xin chao nhe', 97, currentMsgId++)">Send a msg to group: AZStack</button>
+
+		<br/ ><br/ >
+
+			<button onclick="azstack.azSendMessageFileUrlGroup(97, currentMsgId++, 'http://img.v3.news.zdn.vn/w660/Uploaded/rugtnv/2016_01_17/HopbaoQuocte.jpg', 1)">Send a photo to group: AZStack</button>
+
+		<br/ ><br/ >
+
+
+			<button onclick="testMakeGroup()">Make group</button>
+
+
+		<br/ ><br/ >
+
+
+			<button onclick="testInviteToGroup()">Invite to group ID: 140</button>
+
+
+		<br/ ><br/ >
+
+
+			<button onclick="testLeaveGroup()">Leave/Kick group ID: 140</button>
+
+
+		<br/ ><br/ >
+
+
+			<button onclick="testRenameGroup()">Rename group ID: 140</button>
+
+
+		<br/ ><br/ >
+
+
+			<button onclick="azstack.azSendTyping(1, 34734)">Chat 1-1 typing</button>
+
+		<br/ ><br/ >
+			<button onclick="azstack.azSendTyping(2, 140)">Chat group typing</button>
+
+
+		<br/ ><br/ >
+			<button onclick="azstack.azSendMessageSticker('6', '002.png', 1, currentMsgId++, 'http://azstack.com/api/public_html/sticker/1/002.png')">Chat 1-1 sticker</button>
+		<br/ ><br/ >
+			<button onclick="azstack.azSendMessageStickerGroup(312, '002.png', 1, currentMsgId++, 'http://azstack.com/api/public_html/sticker/1/002.png')">Chat group sticker</button>
+
+
+		<br/ ><br/ >
+
+
+			<button onclick="testGetGroupInfo()">Get group info</button>
+	</body>
+</html>
