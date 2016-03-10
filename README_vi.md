@@ -1,6 +1,6 @@
 # 1. Quick Start:
 
-Xem ví dụ xác thực, gửi và nhận tin nhắn ở đây: https://github.com/azstack/JavaScript-SDK/blob/master/Example/example_1.html
+Please see sample of authentication here: https://github.com/azstack/JavaScript-SDK/blob/master/Example/example_1.html
 
 
 ```javascript
